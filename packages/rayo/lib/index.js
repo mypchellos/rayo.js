@@ -1,7 +1,10 @@
+const cluster = require('cluster');
+const cpus = require('os').cpus();
 const http = require('http');
 const parseurl = require('parseurl');
 const { parse } = require('querystring');
 const Bridge = require('./bridge');
+const pino = require('./pino');
 const { send } = require('./response');
 
 class Index extends Bridge {
@@ -10,6 +13,7 @@ class Index extends Bridge {
     ({
       port: this.port,
       host: this.host,
+      cluster: this.cluster = true,
       onError: this.onError = null,
       notFound: this.notFound = null,
       server: this.server = http.createServer()
@@ -18,12 +22,32 @@ class Index extends Bridge {
   }
 
   start(callback = function cb() {}) {
-    this.server.listen(this.port, this.host);
-    this.server.on('request', this.dispatch);
-    this.server.on('listening', () => {
-      this.through();
-      callback(this.server.address());
-    });
+    if (this.cluster && cluster.isMaster) {
+      let count = cpus.length;
+      console.log('a');
+      while (count) {
+        cluster.fork();
+        count -= 1;
+        console.log(count);
+      }
+
+      //for (let cpu = 0; cpu < cpuCount; cpu += 1) {
+        //cluster.fork();
+      //}
+
+      cluster.on('exit', (worker, code, signal) => {
+        pino.warn(`Dead worker: ${worker.process.pid}; ${code} | ${signal}`);
+        cluster.fork();
+      });
+    } else {
+      // const worker = this.cluster ? `| Worker: ${cluster.worker.process.pid}` : '';
+      this.server.listen(this.port, this.host);
+      this.server.on('request', this.dispatch);
+      this.server.on('listening', () => {
+        this.through();
+        callback(this.server.address());
+      });
+    }
 
     return this.server;
   }

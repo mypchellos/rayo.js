@@ -19,6 +19,7 @@
   "license": "MIT",
   "dependencies": {
     "matchit": "1.x",
-    "parseurl": "1.x"
+    "parseurl": "1.x",
+    "pino": "^5.0.0-rc.4"
   }
 }
