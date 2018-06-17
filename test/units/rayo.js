@@ -11,7 +11,9 @@ const fake = {
 const test = (server) => {
   should(server).be.an.Object();
   should(server).have.properties('server', 'dispatch', 'start', 'step');
-  should(server.server).be.an.Object();
+  if (server.server) {
+    should(server.server).be.an.Object();
+  }
   should(server.dispatch).be.an.Function();
   should(server.start).be.an.Function();
   should(server.step).be.an.Function();

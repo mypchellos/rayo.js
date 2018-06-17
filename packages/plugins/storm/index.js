@@ -18,6 +18,8 @@ class Storm {
       throw new Error('You need to provide a boot function.');
     }
 
+    this.revive = this.revive.bind(this);
+    this.stop = this.stop.bind(this);
     this.start();
   }
 
@@ -44,12 +46,13 @@ class Storm {
       }
     }
 
+    log.warn('The cluster has been terminated by the system.');
     process.exit();
   }
 
   revive(worker, code, signal) {
     if (this.up) {
-      log.warn(`A worker died: ${worker.process.pid}; ${code} | ${signal}`);
+      log.warn(`Worker ${worker.process.pid} died, with ${signal}.`);
       cluster.fork();
     }
   }

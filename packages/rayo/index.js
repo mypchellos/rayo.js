@@ -20,13 +20,14 @@ class Rayo extends Bridge {
       cluster: this.cluster = true,
       onError: this.onError = null,
       notFound: this.notFound = null,
-      server: this.server = http.createServer()
+      server: this.server = null
     } = options);
     this.dispatch = this.dispatch.bind(this);
   }
 
   start(callback = function cb() {}) {
-    const boot = (workerId) => {
+    const server = (workerId) => {
+      this.server = this.server || http.createServer();
       this.server.listen(this.port, this.host);
       this.server.on('request', this.dispatch);
       this.server.on('listening', () => {
@@ -36,9 +37,9 @@ class Rayo extends Bridge {
     };
 
     if (this.cluster) {
-      storm(boot);
+      storm(server);
     } else {
-      boot();
+      server();
     }
 
     return this.server;
